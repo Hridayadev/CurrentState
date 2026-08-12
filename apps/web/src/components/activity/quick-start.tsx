@@ -135,7 +135,7 @@ export function QuickStart({
 
             <div className="border-t border-line pt-2">
               {creatingCategory ? (
-                <div className="flex items-end gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                   <Field label="Category name" className="flex-1">
                     <Input
                       value={newCategoryName}
@@ -144,24 +144,26 @@ export function QuickStart({
                       autoFocus
                     />
                   </Field>
-                  <Button
-                    size="sm"
-                    disabled={!newCategoryName.trim()}
-                    onClick={() => createCategory.mutate()}
-                    loading={createCategory.isPending}
-                  >
-                    Add
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setCreatingCategory(false);
-                      setNewCategoryName('');
-                    }}
-                  >
-                    Cancel
-                  </Button>
+                  <div className="flex gap-2 sm:shrink-0">
+                    <Button
+                      size="sm"
+                      disabled={!newCategoryName.trim()}
+                      onClick={() => createCategory.mutate()}
+                      loading={createCategory.isPending}
+                    >
+                      Add
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setCreatingCategory(false);
+                        setNewCategoryName('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <button
@@ -180,7 +182,7 @@ export function QuickStart({
 
         <div>
           <p className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-400">Timer mode</p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => setMode('STOPWATCH')}

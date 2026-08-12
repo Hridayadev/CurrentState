@@ -181,7 +181,7 @@ export function ManualEntry({
 
             <div className="border-t border-line pt-2">
               {creatingCategory ? (
-                <div className="flex items-end gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                   <Field label="Category name" className="flex-1">
                     <Input
                       value={newCategoryName}
@@ -190,24 +190,26 @@ export function ManualEntry({
                       autoFocus
                     />
                   </Field>
-                  <Button
-                    size="sm"
-                    disabled={!newCategoryName.trim()}
-                    onClick={() => createCategory.mutate()}
-                    loading={createCategory.isPending}
-                  >
-                    Add
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setCreatingCategory(false);
-                      setNewCategoryName('');
-                    }}
-                  >
-                    Cancel
-                  </Button>
+                  <div className="flex gap-2 sm:shrink-0">
+                    <Button
+                      size="sm"
+                      disabled={!newCategoryName.trim()}
+                      onClick={() => createCategory.mutate()}
+                      loading={createCategory.isPending}
+                    >
+                      Add
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setCreatingCategory(false);
+                        setNewCategoryName('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <button
@@ -222,7 +224,7 @@ export function ManualEntry({
           </div>
         ) : null}
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Start time">
             <Input type="time" value={start} onChange={(e) => setStart(e.target.value)} />
           </Field>

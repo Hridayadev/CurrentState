@@ -99,7 +99,7 @@ export function EditRecordDialog({
           <Field label="Description">
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} disabled={!isToday} />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Start time">
               <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} disabled={!isToday} />
             </Field>

@@ -295,7 +295,7 @@ function CreateScheduleDialog({ open, onClose }: { open: boolean; onClose: () =>
         <Field label="Activity">
           <TemplatePicker value={templateId} onChange={setTemplateId} maxHeight="max-h-48" />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Date">
             <Input type="date" value={dateKey} min={todayKey} onChange={(e) => setDateKey(e.target.value)} />
           </Field>

@@ -31,7 +31,13 @@ export function SignInButton() {
   };
 
   return (
-    <Button size="lg" onClick={handle} loading={busy} disabled={loading} className="min-w-[240px]">
+    <Button
+      size="lg"
+      onClick={handle}
+      loading={busy}
+      disabled={loading}
+      className="w-full max-w-[280px] sm:w-auto sm:min-w-[240px]"
+    >
       <GoogleMark />
       Continue with Google
     </Button>
