@@ -10,7 +10,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@currentstate/shared": "file:../../packages/shared",
+    "@currentstate/shared": "workspace:*",
     "fastify": "^5.3.0",
     "zod": "^3.23.8"
   },
