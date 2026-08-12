@@ -1,0 +1,174 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica,
+      Arial, sans-serif;
+    --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Code', 'Roboto Mono', Menlo,
+      Consolas, monospace;
+
+    /* Dark theme (default) tokens */
+    --ink: 4 9 20;
+    --ink-elevated: 10 18 32;
+    --ink-panel: 13 24 42;
+    --ink-panel2: 22 40 64;
+    --line: rgba(125, 211, 252, 0.12);
+    --line-strong: rgba(125, 211, 252, 0.26);
+    --white: 255 255 255;
+    --slate-50: 248 250 252;
+    --slate-100: 241 245 249;
+    --slate-200: 226 232 240;
+    --slate-300: 203 213 225;
+    --slate-400: 148 163 184;
+    --slate-500: 100 116 139;
+    --slate-600: 71 85 105;
+    --slate-700: 51 65 85;
+    --slate-800: 30 41 59;
+    --slate-900: 15 23 42;
+    --slate-950: 8 12 26;
+    --cyan-200: 165 243 252;
+    --cyan-300: 103 232 249;
+    --sky-300: 125 211 252;
+    --emerald-300: 110 231 183;
+    --rose-300: 253 164 175;
+    --rose-400: 251 113 133;
+    --violet-300: 196 181 253;
+    --amber-300: 252 211 77;
+    --blue-300: 147 197 253;
+    --current: 56 189 248;
+    --current-strong: 14 165 233;
+    --overlay: rgba(255, 255, 255, 0.06);
+    --overlay-strong: rgba(255, 255, 255, 0.1);
+    --shadow-glow: 0 0 0 1px rgba(125, 211, 252, 0.14), 0 12px 40px rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.35);
+
+    color-scheme: dark;
+  }
+
+  [data-theme='light'] {
+    --ink: 240 244 249;
+    --ink-elevated: 255 255 255;
+    --ink-panel: 255 255 255;
+    --ink-panel2: 235 240 247;
+    --line: rgba(15, 23, 42, 0.09);
+    --line-strong: rgba(15, 23, 42, 0.18);
+    --white: 11 18 32;
+    --slate-50: 248 250 252;
+    --slate-100: 15 23 42;
+    --slate-200: 30 41 59;
+    --slate-300: 51 65 85;
+    --slate-400: 71 85 105;
+    --slate-500: 100 116 139;
+    --slate-600: 148 163 184;
+    --slate-700: 226 232 240;
+    --slate-800: 203 213 225;
+    --slate-900: 241 245 249;
+    --slate-950: 8 12 26;
+    --cyan-200: 6 182 212;
+    --cyan-300: 8 145 178;
+    --sky-300: 2 132 199;
+    --emerald-300: 5 150 105;
+    --rose-300: 225 29 72;
+    --rose-400: 190 18 60;
+    --violet-300: 109 40 217;
+    --amber-300: 180 83 9;
+    --blue-300: 29 78 216;
+    --current: 2 132 199;
+    --current-strong: 3 105 161;
+    --overlay: rgba(15, 23, 42, 0.05);
+    --overlay-strong: rgba(15, 23, 42, 0.09);
+    --shadow-glow: 0 0 0 1px rgba(15, 23, 42, 0.06), 0 12px 32px rgba(15, 23, 42, 0.08);
+    --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 28px rgba(15, 23, 42, 0.06);
+
+    color-scheme: light;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    background:
+      radial-gradient(1000px 520px at 82% -10%, rgba(56, 189, 248, 0.09), transparent 60%),
+      radial-gradient(820px 520px at -10% 110%, rgba(139, 92, 246, 0.07), transparent 55%),
+      linear-gradient(180deg, #04080f 0%, #081120 55%, #0a1728 100%);
+    color: #eaf3ff;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  [data-theme='light'] body {
+    background:
+      radial-gradient(1000px 520px at 82% -10%, rgba(56, 189, 248, 0.11), transparent 60%),
+      radial-gradient(820px 520px at -10% 110%, rgba(139, 92, 246, 0.05), transparent 55%),
+      linear-gradient(180deg, #f4f7fb 0%, #eef2f7 100%);
+    color: #0f172a;
+  }
+
+  * {
+    border-color: rgba(125, 211, 252, 0.14);
+  }
+
+  [data-theme='light'] * {
+    border-color: rgba(15, 23, 42, 0.1);
+  }
+
+  ::selection {
+    background: rgba(56, 189, 248, 0.3);
+  }
+
+  [data-theme='light'] ::selection {
+    background: rgba(56, 189, 248, 0.25);
+  }
+
+  input,
+  textarea,
+  select {
+    outline: none;
+  }
+
+  /* Slim scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(125, 211, 252, 0.22) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(125, 211, 252, 0.22);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  [data-theme='light'] * {
+    scrollbar-color: rgba(15, 23, 42, 0.2) transparent;
+  }
+  [data-theme='light'] *::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.2);
+  }
+
+  /* Native date picker icon legibility */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    cursor: pointer;
+  }
+  [data-theme='light'] input[type='date']::-webkit-calendar-picker-indicator {
+    filter: none;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

@@ -1,0 +1,22 @@
+node_modules
+.next
+out
+dist
+coverage
+.DS_Store
+.env
+.env.*
+!.env.example
+*.log
+*.tsbuildinfo
+
+# Obsolete pre-Supabase schema (supabase/schema.sql is canonical)
+/database/
+
+# Non-production planning docs (not needed to build or run the app)
+/architecture.md
+/backend_structure.md
+/prd.md
+/tech_stack.md
+/rules.md
+/phases.md

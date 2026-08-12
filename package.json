@@ -1,0 +1,18 @@
+{
+  "name": "currentstate",
+  "private": true,
+  "packageManager": "pnpm@11.21.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0"
+  }
+}
