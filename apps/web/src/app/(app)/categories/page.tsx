@@ -43,7 +43,7 @@ export default function CategoriesPage() {
         title="Categories"
         description="Categories group your activities and carry a productivity classification. They stay yours even if you leave a room."
         actions={
-          <Button onClick={() => setCreating(true)}>
+          <Button className="flex-1 sm:flex-none" onClick={() => setCreating(true)}>
             <FolderPlus className="h-4 w-4" /> New category
           </Button>
         }
@@ -195,7 +195,7 @@ function CategoryDialog({
         </Field>
 
         <Field label="Icon" hint="Pick an icon — every category has exactly one.">
-          <div className="grid grid-cols-8 gap-1.5">
+          <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
             {EMOJI_ICONS.map((e) => (
               <button
                 key={e}

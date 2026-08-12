@@ -230,7 +230,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-3 border-b border-line bg-ink/70 px-5 backdrop-blur lg:top-0 lg:px-8">
+        <header className="sticky top-14 z-10 flex h-16 items-center justify-between gap-3 border-b border-line bg-ink/70 px-5 backdrop-blur lg:top-0 lg:px-8">
           <div className="hidden items-center gap-3 lg:flex">
             <p className="text-sm text-slate-300">
               <span className="font-medium text-white">{greeting}</span>

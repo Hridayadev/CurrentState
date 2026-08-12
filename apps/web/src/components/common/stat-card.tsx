@@ -37,7 +37,7 @@ export function StatCard({
         <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</p>
         {icon ? <span className={cn('flex h-7 w-7 items-center justify-center rounded-lg', iconTones[tone])}>{icon}</span> : null}
       </div>
-      <p className="mt-2 text-2xl font-semibold tracking-tight text-white">{value}</p>
+      <p className="mt-2 break-words text-xl font-semibold tracking-tight text-white sm:text-2xl">{value}</p>
       {sub ? <p className="mt-1 text-xs text-slate-500">{sub}</p> : null}
     </div>
   );

@@ -519,7 +519,7 @@ function InviteCard({
             <KeyRound className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-mono text-lg font-semibold tracking-[0.2em] text-cyan-200">{room.inviteCode}</p>
+            <p className="font-mono text-base font-semibold tracking-[0.15em] text-cyan-200 sm:text-lg sm:tracking-[0.2em]">{room.inviteCode}</p>
             {room.inviteExpiresAt ? (
               <p className="text-xs text-slate-500">Expires {formatDate(room.inviteExpiresAt)}</p>
             ) : (

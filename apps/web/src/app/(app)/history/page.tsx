@@ -123,10 +123,10 @@ export default function HistoryPage() {
         description="Your personal activity history — it belongs to you, not the room. Past days are read-only."
         actions={
           <>
-            <Button variant="outline" onClick={() => download('csv')}>
+            <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => download('csv')}>
               <FileSpreadsheet className="h-4 w-4" /> Export CSV
             </Button>
-            <Button variant="outline" onClick={() => download('json')}>
+            <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => download('json')}>
               <FileJson className="h-4 w-4" /> Export JSON
             </Button>
           </>
@@ -186,7 +186,7 @@ export default function HistoryPage() {
             <Input type="date" value={draft.to} onChange={(e) => setDraft((d) => ({ ...d, to: e.target.value }))} />
           </Field>
         </div>
-        <div className="mt-4 flex items-center justify-between gap-3">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-slate-500">
             {records?.length ?? 0} {records?.length === 1 ? 'record' : 'records'} across {stats.days} {stats.days === 1 ? 'day' : 'days'}
           </p>
@@ -224,7 +224,7 @@ export default function HistoryPage() {
         <div className="space-y-6">
           {visible.map(([day, dayRecords]) => (
             <div key={day}>
-              <div className="mb-2 flex items-baseline justify-between">
+              <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                 <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
                   {formatDayTitle(day)}
                 </p>

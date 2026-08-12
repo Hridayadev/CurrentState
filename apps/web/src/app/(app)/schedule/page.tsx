@@ -49,7 +49,7 @@ export default function SchedulePage() {
         title="Schedule"
         description="Plans, not promises — scheduled activities never start on their own."
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
+          <Button className="flex-1 sm:flex-none" onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4" /> New schedule
           </Button>
         }

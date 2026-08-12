@@ -84,13 +84,13 @@ export default function AnalyticsPage() {
         <p className="text-sm font-medium text-slate-300">
           Week of <span className="text-slate-100">{week.label}</span>
         </p>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-lg border border-line bg-ink-panel p-1">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+          <div className="flex w-full items-center rounded-lg border border-line bg-ink-panel p-1 sm:w-auto">
             <button
               type="button"
               onClick={() => setScope('me')}
               className={cn(
-                'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                'flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:flex-none',
                 !isPartner ? 'bg-ink-elevated text-slate-100 shadow-sm' : 'text-slate-400 hover:text-slate-200',
               )}
             >
@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
               disabled={!hasPartner}
               title={hasPartner ? 'Switch to partner analytics' : 'Connect with a partner first'}
               className={cn(
-                'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                'flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors sm:flex-none',
                 isPartner ? 'bg-ink-elevated text-slate-100 shadow-sm' : 'text-slate-400 hover:text-slate-200',
                 !hasPartner && 'cursor-not-allowed opacity-40 hover:text-slate-400',
               )}

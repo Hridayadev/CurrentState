@@ -84,10 +84,10 @@ export default function ActivitiesPage() {
         description="Start timers, log past activity, and manage today's records."
         actions={
           <>
-            <Button variant="outline" onClick={() => setManualOpen(true)}>
+            <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => setManualOpen(true)}>
               <Clock className="h-4 w-4" /> Log manually
             </Button>
-            <Button onClick={() => setQuickOpen(true)}>
+            <Button className="flex-1 sm:flex-none" onClick={() => setQuickOpen(true)}>
               <Play className="h-4 w-4 fill-current" /> Start timer
             </Button>
           </>
