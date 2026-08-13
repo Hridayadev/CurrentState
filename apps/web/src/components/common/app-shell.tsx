@@ -224,12 +224,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Mobile top bar */}
-      <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-ink/90 px-4 backdrop-blur xl:hidden">
-        <Logo />
-        <ThemeToggle />
-      </div>
-
       {mobileNav ? (
         <div className="fixed inset-0 z-50 xl:hidden">
           <div className="absolute inset-0 bg-slate-950/70" onClick={() => setMobileNav(false)} />
@@ -269,6 +263,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
+        {/* Mobile top bar */}
+        <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-ink/90 px-4 backdrop-blur xl:hidden">
+          <Logo />
+          <ThemeToggle />
+        </div>
+
         <header className="sticky top-14 z-10 flex h-16 items-center justify-between gap-3 border-b border-line bg-ink/70 px-5 backdrop-blur xl:top-0 xl:px-8">
           <div className="hidden items-center gap-3 xl:flex">
             <p className="text-sm text-slate-300">
