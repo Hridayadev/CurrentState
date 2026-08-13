@@ -264,17 +264,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <div className="sticky top-0 z-20 flex flex-col gap-2.5 border-b border-line bg-ink/90 px-4 py-3 backdrop-blur xl:hidden">
+        <div className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-line bg-ink/90 px-4 backdrop-blur xl:hidden">
           <Logo />
-          <div className="flex items-center gap-2">
-            <PartnerChip />
-            <div className="ml-auto flex shrink-0 items-center gap-2">
-              <ThemeToggle />
-              <NotificationsBell />
-              <Link href="/settings" aria-label="Profile">
-                <Avatar emoji={user.emojiAvatar} size="sm" className="cursor-pointer border-current/30" />
-              </Link>
-            </div>
+          <PartnerChip />
+          <div className="ml-auto shrink-0">
+            <NotificationsBell />
           </div>
         </div>
 
