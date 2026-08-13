@@ -26,6 +26,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { BrandLogo } from '@/components/common/brand-logo';
 import { NotificationToaster } from '@/components/common/notification-toaster';
 import { NotificationsBell } from '@/components/common/notifications';
+import { OfflineBanner } from '@/components/common/offline-banner';
 import { ThemeToggle } from '@/components/common/theme-toggle';
 
 const NAV = [
@@ -263,6 +264,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
+        <OfflineBanner />
         {/* Mobile top bar */}
         <div className="flex h-14 shrink-0 items-center gap-2 border-b border-line bg-ink/90 px-4 backdrop-blur xl:hidden">
           <Logo />

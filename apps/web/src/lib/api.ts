@@ -19,6 +19,23 @@ import type {
 import { createClient as createSupabaseClient } from '@/utils/supabase/client';
 import { clockFromMinutes, minutesFromClock, parseDateKey, toDateKey, weekRange } from '@/lib/utils';
 import { CLASSIFICATION_ORDER } from '@/lib/classification';
+import { OfflineError, isOffline } from '@/lib/offline/connectivity';
+import { enqueueOp } from '@/lib/offline/storage';
+import { cachedFindByKey, getCachedSessionUser, setCachedSessionUser } from '@/lib/offline/cache';
+import {
+  buildCategory,
+  buildRecord,
+  buildSchedule,
+  buildTag,
+  buildTemplate,
+  buildUserAfterPreferencesPatch,
+  buildUserAfterProfilePatch,
+  markAllNotificationsReadLocally,
+  removeFromList,
+  removeRecord,
+  upsertInList,
+  upsertRecord,
+} from '@/lib/offline/optimistic';
 
 let client: ReturnType<typeof createSupabaseClient> | null = null;
 function db() {
@@ -315,6 +332,7 @@ export async function getSession(): Promise<User | null> {
 }
 
 export async function signInWithGoogle(): Promise<User> {
+  if (isOffline()) throw new OfflineError('You need a connection to sign in.');
   const { origin } = window.location;
   await db().auth.signInWithOAuth({
     provider: 'google',
@@ -334,6 +352,7 @@ export async function completeOnboarding(input: {
   emojiAvatar: string;
   timezone: string;
 }): Promise<User> {
+  if (isOffline()) throw new OfflineError('You need a connection to finish setting up.');
   const uid = await requireUserId();
   const { data: authData } = await db().auth.getUser();
   const { error } = await db()
@@ -357,6 +376,14 @@ export async function completeOnboarding(input: {
 }
 
 export async function updateProfile(input: Partial<Pick<User, 'displayName' | 'emojiAvatar' | 'timezone'>>): Promise<User> {
+  if (isOffline()) {
+    await enqueueOp('updateProfile', input);
+    const cached = getCachedSessionUser<User>();
+    if (!cached) throw new OfflineError('Your profile is not loaded on this device yet.');
+    const optimistic = buildUserAfterProfilePatch(cached, input);
+    setCachedSessionUser(optimistic);
+    return optimistic;
+  }
   const uid = await requireUserId();
   const patch: Partial<Record<'display_name' | 'emoji_avatar' | 'timezone', string>> = {};
   if (input.displayName !== undefined) patch.display_name = input.displayName;
@@ -395,6 +422,14 @@ export async function updateProfile(input: Partial<Pick<User, 'displayName' | 'e
 }
 
 export async function updatePreferences(input: Partial<User['preferences']>): Promise<User> {
+  if (isOffline()) {
+    await enqueueOp('updatePreferences', input);
+    const cached = getCachedSessionUser<User>();
+    if (!cached) throw new OfflineError('Your profile is not loaded on this device yet.');
+    const optimistic = buildUserAfterPreferencesPatch(cached, input);
+    setCachedSessionUser(optimistic);
+    return optimistic;
+  }
   const uid = await requireUserId();
   if (input.overlapEnabled !== undefined || input.defaultPrivacy !== undefined) {
     const patch: Partial<Record<'overlap_enabled' | 'default_privacy', boolean | Privacy>> = {};
@@ -431,6 +466,12 @@ export async function listCategories(): Promise<Category[]> {
 }
 
 export async function createCategory(input: { name: string; icon: string; classification: Classification }): Promise<Category> {
+  if (isOffline()) {
+    await enqueueOp('createCategory', input);
+    const optimistic = buildCategory(input);
+    upsertInList('categories', optimistic);
+    return optimistic;
+  }
   const uid = await requireUserId();
   const { data, error } = await db()
     .from('categories')
@@ -447,6 +488,14 @@ export async function createCategory(input: { name: string; icon: string; classi
 }
 
 export async function updateCategory(id: string, input: Partial<Pick<Category, 'name' | 'icon' | 'classification'>>): Promise<Category> {
+  if (isOffline()) {
+    await enqueueOp('updateCategory', { id, input });
+    const existing = cachedFindByKey<Category>((c) => c.id === id, ['categories']);
+    if (!existing) throw new OfflineError('Category is not loaded on this device yet.');
+    const optimistic = { ...existing, ...input, updatedAt: new Date().toISOString() };
+    upsertInList('categories', optimistic);
+    return optimistic;
+  }
   const { data, error } = await db()
     .from('categories')
     .update({
@@ -466,6 +515,11 @@ export async function updateCategory(id: string, input: Partial<Pick<Category, '
 }
 
 export async function deleteCategory(id: string): Promise<void> {
+  if (isOffline()) {
+    await enqueueOp('deleteCategory', id);
+    removeFromList('categories', id);
+    return;
+  }
   const { error } = await db().from('categories').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
@@ -481,6 +535,13 @@ export async function listTags(): Promise<Tag[]> {
 }
 
 export async function createTag(name: string): Promise<Tag> {
+  if (isOffline()) {
+    const clean = name.trim().replace(/^#/, '').toLowerCase();
+    await enqueueOp('createTag', clean);
+    const optimistic = buildTag(clean);
+    upsertInList('tags', optimistic);
+    return optimistic;
+  }
   const uid = await requireUserId();
   const clean = name.trim().replace(/^#/, '').toLowerCase();
   const { data, error } = await db()
@@ -493,6 +554,11 @@ export async function createTag(name: string): Promise<Tag> {
 }
 
 export async function deleteTag(id: string): Promise<void> {
+  if (isOffline()) {
+    await enqueueOp('deleteTag', id);
+    removeFromList('tags', id);
+    return;
+  }
   const { error } = await db().from('tags').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
@@ -508,6 +574,12 @@ export async function listTemplates(): Promise<ActivityTemplate[]> {
 }
 
 export async function createTemplate(input: { categoryId: string; title: string; description?: string }): Promise<ActivityTemplate> {
+  if (isOffline()) {
+    await enqueueOp('createTemplate', input);
+    const optimistic = buildTemplate(input);
+    upsertInList('templates', optimistic);
+    return optimistic;
+  }
   const uid = await requireUserId();
   const { data: category } = await db().from('categories').select('classification').eq('id', input.categoryId).maybeSingle();
   if (!category) throw new Error('Category not found');
@@ -527,6 +599,11 @@ export async function createTemplate(input: { categoryId: string; title: string;
 }
 
 export async function deleteTemplate(id: string): Promise<void> {
+  if (isOffline()) {
+    await enqueueOp('deleteTemplate', id);
+    removeFromList('templates', id);
+    return;
+  }
   const { error } = await db().from('activity_templates').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
@@ -599,6 +676,7 @@ export interface StartTimerInput {
 }
 
 export async function startTimer(input: StartTimerInput): Promise<ActivityRecord> {
+  if (isOffline()) throw new OfflineError('Timers need a connection. You can log the activity manually.');
   const uid = await requireUserId();
   const { data: template } = await db()
     .from('activity_templates')
@@ -656,6 +734,7 @@ export async function startTimer(input: StartTimerInput): Promise<ActivityRecord
 }
 
 export async function stopRecord(id: string): Promise<ActivityRecord> {
+  if (isOffline()) throw new OfflineError('Stopping a timer needs a connection.');
   const { data: existing } = await db().from('activity_records').select('id, status, start_time').eq('id', id).maybeSingle();
   if (!existing) throw new Error('Record not found');
   if (existing.status !== 'RUNNING') {
@@ -688,6 +767,12 @@ export interface ManualRecordInput {
 }
 
 export async function createManualRecord(input: ManualRecordInput): Promise<ActivityRecord> {
+  if (isOffline()) {
+    await enqueueOp('createManualRecord', input);
+    const optimistic = buildRecord(input);
+    upsertRecord(optimistic);
+    return optimistic;
+  }
   const uid = await requireUserId();
   const { data: template } = await db()
     .from('activity_templates')
@@ -731,6 +816,14 @@ export async function createManualRecord(input: ManualRecordInput): Promise<Acti
 }
 
 export async function updateRecord(id: string, input: Partial<Pick<ActivityRecord, 'title' | 'description' | 'privacy' | 'tagIds' | 'startTime' | 'endTime'>>): Promise<ActivityRecord> {
+  if (isOffline()) {
+    await enqueueOp('updateRecord', { id, input });
+    const existing = cachedFindByKey<ActivityRecord>((r) => r.id === id, ['records', 'history']);
+    if (!existing) throw new OfflineError('This record is not loaded on this device yet.');
+    const optimistic: ActivityRecord = { ...existing, ...input, id, updatedAt: new Date().toISOString() };
+    upsertRecord(optimistic);
+    return optimistic;
+  }
   const patch: Partial<Record<string, string | number | null>> = {};
   if (input.title !== undefined) patch.title = input.title;
   if (input.description !== undefined) patch.description = input.description;
@@ -764,6 +857,11 @@ export async function updateRecord(id: string, input: Partial<Pick<ActivityRecor
 }
 
 export async function deleteRecord(id: string): Promise<void> {
+  if (isOffline()) {
+    await enqueueOp('deleteRecord', id);
+    removeRecord(id);
+    return;
+  }
   const { error } = await db().from('activity_records').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
@@ -788,6 +886,12 @@ export interface CreateScheduleInput {
 }
 
 export async function createSchedule(input: CreateScheduleInput): Promise<Schedule> {
+  if (isOffline()) {
+    await enqueueOp('createSchedule', input);
+    const optimistic = buildSchedule(input);
+    upsertInList('schedules', optimistic);
+    return optimistic;
+  }
   const uid = await requireUserId();
   const { data: template } = await db()
     .from('activity_templates')
@@ -815,6 +919,7 @@ export async function createSchedule(input: CreateScheduleInput): Promise<Schedu
 }
 
 export async function startSchedule(id: string): Promise<{ schedule: Schedule; record: ActivityRecord }> {
+  if (isOffline()) throw new OfflineError('Starting a schedule needs a connection.');
   const uid = await requireUserId();
   const { data: schedule } = await db().from('schedules').select('*').eq('id', id).maybeSingle();
   if (!schedule) throw new Error('Schedule not found');
@@ -891,6 +996,11 @@ export async function startSchedule(id: string): Promise<{ schedule: Schedule; r
 }
 
 export async function deleteSchedule(id: string): Promise<void> {
+  if (isOffline()) {
+    await enqueueOp('deleteSchedule', id);
+    removeFromList('schedules', id);
+    return;
+  }
   const { error } = await db().from('schedules').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
@@ -974,6 +1084,7 @@ export async function getRoom(): Promise<Room | null> {
 }
 
 export async function createRoom(): Promise<Room> {
+  if (isOffline()) throw new OfflineError('Creating a room needs a connection.');
   const uid = await requireUserId();
   const code = inviteCode();
   const { data: room, error } = await db()
@@ -992,6 +1103,7 @@ export async function createRoom(): Promise<Room> {
 }
 
 export async function joinRoom(code: string): Promise<Room> {
+  if (isOffline()) throw new OfflineError('Joining a room needs a connection.');
   const uid = await requireUserId();
   const normalized = code.trim().toUpperCase();
   const { data: room } = await db()
@@ -1039,6 +1151,7 @@ export async function joinRoom(code: string): Promise<Room> {
 }
 
 export async function leaveRoom(): Promise<void> {
+  if (isOffline()) throw new OfflineError('Leaving a room needs a connection.');
   const uid = await requireUserId();
   await db()
     .from('room_memberships')
@@ -1054,6 +1167,7 @@ export async function leaveRoom(): Promise<void> {
 }
 
 export async function refreshInvite(): Promise<Room> {
+  if (isOffline()) throw new OfflineError('Refreshing the invite needs a connection.');
   const room = await getRoom();
   if (!room) throw new Error('No room');
   const code = inviteCode();
@@ -1145,6 +1259,11 @@ export async function listNotifications(): Promise<AppNotification[]> {
 }
 
 export async function markAllNotificationsRead(): Promise<void> {
+  if (isOffline()) {
+    await enqueueOp('markAllNotificationsRead', null);
+    markAllNotificationsReadLocally();
+    return;
+  }
   const uid = await requireUserId();
   await db()
     .from('notifications')
@@ -1558,6 +1677,7 @@ function serializeExport(
 
 /** Wipe all app data for the signed-in user (settings danger zone). */
 export async function clearAllData(): Promise<void> {
+  if (isOffline()) throw new OfflineError('Clearing your data needs a connection.');
   const uid = await requireUserId();
   const { data: recordRows } = await db()
     .from('activity_records')

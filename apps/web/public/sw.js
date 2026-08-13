@@ -1,5 +1,5 @@
 /* CurrentState service worker — offline app shell + runtime caching. */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = `currentstate-${VERSION}`;
 
 const PRECACHE = [
