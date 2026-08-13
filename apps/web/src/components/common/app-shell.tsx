@@ -68,14 +68,14 @@ function PartnerChip() {
   return (
     <Link
       href="/room"
-      className="hidden items-center gap-2 rounded-xl border border-line bg-ink-elevated/70 px-3 py-2 transition-colors hover:border-current/40 md:flex"
+      className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-line bg-ink-elevated/70 px-3 py-2 transition-colors hover:border-current/40"
       title={`${partner.displayName} — ${partner.activity?.title ?? 'Idle'}`}
     >
-      <span className="relative flex">
+      <span className="relative flex shrink-0">
         <Avatar emoji={partner.emojiAvatar} size="xs" />
         <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-ink-panel bg-emerald-400" />
       </span>
-      <span className="text-xs text-slate-300">
+      <span className="min-w-0 flex-1 truncate text-xs text-slate-300">
         <span className="font-medium text-slate-200">{partner.displayName}</span>
         <span className="text-slate-500"> · </span>
         {partner.activity ? (
@@ -264,13 +264,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-ink/90 px-4 backdrop-blur xl:hidden">
+        <div className="sticky top-0 z-20 flex flex-col gap-2.5 border-b border-line bg-ink/90 px-4 py-3 backdrop-blur xl:hidden">
           <Logo />
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <PartnerChip />
+            <div className="ml-auto flex shrink-0 items-center gap-2">
+              <ThemeToggle />
+              <NotificationsBell />
+              <Link href="/settings" aria-label="Profile">
+                <Avatar emoji={user.emojiAvatar} size="sm" className="cursor-pointer border-current/30" />
+              </Link>
+            </div>
+          </div>
         </div>
 
-        <header className="sticky top-14 z-10 flex h-16 items-center justify-between gap-3 border-b border-line bg-ink/70 px-5 backdrop-blur xl:top-0 xl:px-8">
-          <div className="hidden items-center gap-3 xl:flex">
+        <header className="sticky top-0 hidden h-16 items-center justify-between gap-3 border-b border-line bg-ink/70 px-8 backdrop-blur xl:flex">
+          <div className="flex items-center gap-3">
             <p className="text-sm text-slate-300">
               <span className="font-medium text-white">{greeting}</span>
               <span className="text-slate-500"> · </span>
