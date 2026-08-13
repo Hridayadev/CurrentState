@@ -1,6 +1,6 @@
-import type { ActivityRecord, ActivityTemplate, Category, Classification, Privacy, Schedule, Tag, User } from '@/types';
+import type { ActivityRecord, ActivityTemplate, Category, Classification, Privacy, Schedule, Tag, TimerMode, User } from '@/types';
 import { OfflineError } from './connectivity';
-import { cachedList, cachedUserId, getQueryClient } from './cache';
+import { cachedList, cachedUserId, getCachedSessionUser, getQueryClient } from './cache';
 import { clockFromMinutes, minutesFromClock, parseDateKey } from '@/lib/utils';
 import type { ManualRecordInput, CreateScheduleInput } from '@/lib/api';
 
@@ -23,6 +23,14 @@ function cachedCategory(id: string): Category | undefined {
 
 function userId(): string {
   return cachedUserId() ?? '';
+}
+
+function defaultPrivacy(): Privacy {
+  return getCachedSessionUser<User>()?.preferences.defaultPrivacy ?? 'PUBLIC';
+}
+
+export function overlapEnabled(): boolean {
+  return getCachedSessionUser<User>()?.preferences.overlapEnabled ?? false;
 }
 
 // ---------------------------------------------------------------------------
@@ -91,6 +99,38 @@ export function buildRecord(input: ManualRecordInput): ActivityRecord {
     startTime: start.toISOString(),
     endTime: end.toISOString(),
     durationSeconds: Math.max(60, Math.round((end.getTime() - start.getTime()) / 1000)),
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
+}
+
+export function buildRunningRecord(
+  input: { templateId: string; mode: TimerMode; durationMinutes?: number },
+  startedAt: string,
+): ActivityRecord {
+  const template = cachedTemplate(input.templateId);
+  if (!template) {
+    throw new OfflineError('Activities are not loaded yet. Reconnect once to load them, then try again offline.');
+  }
+  const timestamp = now();
+  const startMs = new Date(startedAt).getTime();
+  return {
+    id: newId(),
+    userId: userId(),
+    categoryId: template.categoryId,
+    title: template.title,
+    description: template.description,
+    classification: template.classification,
+    source: 'TIMER',
+    status: 'RUNNING',
+    privacy: defaultPrivacy(),
+    tagIds: [],
+    startTime: startedAt,
+    expectedEndTime:
+      input.mode === 'FIXED_DURATION' && input.durationMinutes
+        ? new Date(startMs + input.durationMinutes * 60_000).toISOString()
+        : undefined,
+    durationSeconds: 0,
     createdAt: timestamp,
     updatedAt: timestamp,
   };
@@ -192,4 +232,43 @@ export function markAllNotificationsReadLocally(): void {
   patchCaches(keyIs('notifications'), (items) =>
     (items as Array<{ readAt?: string }>).map((n) => ({ ...n, readAt: n.readAt ?? timestamp })),
   );
+}
+
+// ---------------------------------------------------------------------------
+// Active timer state
+// ---------------------------------------------------------------------------
+
+/** Read the cached active (running) record, if any. */
+export function getActiveRecordCached(): ActivityRecord | null | undefined {
+  const client = getQueryClient();
+  return client.getQueryData<ActivityRecord | null>(['active-record']);
+}
+
+export function setActiveRecordCached(record: ActivityRecord | null): void {
+  const client = getQueryClient();
+  client.setQueryData(['active-record'], record);
+}
+
+/**
+ * Complete the running timer at `endedAt` (optimistically) and clear the
+ * active slot. Returns the completed record, or undefined if none running.
+ */
+export function completeActiveRecord(endedAt: string): ActivityRecord | undefined {
+  const active = getActiveRecordCached();
+  if (!active || active.status !== 'RUNNING') return undefined;
+  const startedAt = active.startTime ?? endedAt;
+  const durationSeconds = Math.max(
+    1,
+    Math.round((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000),
+  );
+  const completed: ActivityRecord = {
+    ...active,
+    status: 'COMPLETED',
+    endTime: endedAt,
+    durationSeconds,
+    updatedAt: endedAt,
+  };
+  setActiveRecordCached(null);
+  upsertRecord(completed);
+  return completed;
 }

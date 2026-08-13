@@ -25,14 +25,18 @@ import { cachedFindByKey, getCachedSessionUser, setCachedSessionUser } from '@/l
 import {
   buildCategory,
   buildRecord,
+  buildRunningRecord,
   buildSchedule,
   buildTag,
   buildTemplate,
   buildUserAfterPreferencesPatch,
   buildUserAfterProfilePatch,
+  completeActiveRecord,
   markAllNotificationsReadLocally,
+  overlapEnabled,
   removeFromList,
   removeRecord,
+  setActiveRecordCached,
   upsertInList,
   upsertRecord,
 } from '@/lib/offline/optimistic';
@@ -465,10 +469,10 @@ export async function listCategories(): Promise<Category[]> {
   return (data ?? []).map(mapCategory);
 }
 
-export async function createCategory(input: { name: string; icon: string; classification: Classification }): Promise<Category> {
+export async function createCategory(input: { id?: string; name: string; icon: string; classification: Classification }): Promise<Category> {
   if (isOffline()) {
-    await enqueueOp('createCategory', input);
     const optimistic = buildCategory(input);
+    await enqueueOp('createCategory', { ...input, clientId: optimistic.id });
     upsertInList('categories', optimistic);
     return optimistic;
   }
@@ -476,6 +480,7 @@ export async function createCategory(input: { name: string; icon: string; classi
   const { data, error } = await db()
     .from('categories')
     .insert({
+      id: input.id,
       user_id: uid,
       name: input.name.trim(),
       icon: input.icon,
@@ -534,11 +539,11 @@ export async function listTags(): Promise<Tag[]> {
   return (data ?? []).map(mapTag);
 }
 
-export async function createTag(name: string): Promise<Tag> {
+export async function createTag(name: string, id?: string): Promise<Tag> {
   if (isOffline()) {
     const clean = name.trim().replace(/^#/, '').toLowerCase();
-    await enqueueOp('createTag', clean);
     const optimistic = buildTag(clean);
+    await enqueueOp('createTag', { name: clean, clientId: optimistic.id });
     upsertInList('tags', optimistic);
     return optimistic;
   }
@@ -546,7 +551,7 @@ export async function createTag(name: string): Promise<Tag> {
   const clean = name.trim().replace(/^#/, '').toLowerCase();
   const { data, error } = await db()
     .from('tags')
-    .upsert({ user_id: uid, name: clean }, { onConflict: 'user_id,name', ignoreDuplicates: true })
+    .upsert({ id, user_id: uid, name: clean }, { onConflict: 'user_id,name', ignoreDuplicates: true })
     .select()
     .single();
   if (error || !data) throw new Error(error?.message ?? 'Could not create tag');
@@ -573,10 +578,10 @@ export async function listTemplates(): Promise<ActivityTemplate[]> {
   return (data ?? []).map(mapTemplate);
 }
 
-export async function createTemplate(input: { categoryId: string; title: string; description?: string }): Promise<ActivityTemplate> {
+export async function createTemplate(input: { id?: string; categoryId: string; title: string; description?: string }): Promise<ActivityTemplate> {
   if (isOffline()) {
-    await enqueueOp('createTemplate', input);
     const optimistic = buildTemplate(input);
+    await enqueueOp('createTemplate', { ...input, clientId: optimistic.id });
     upsertInList('templates', optimistic);
     return optimistic;
   }
@@ -586,6 +591,7 @@ export async function createTemplate(input: { categoryId: string; title: string;
   const { data, error } = await db()
     .from('activity_templates')
     .insert({
+      id: input.id,
       user_id: uid,
       category_id: input.categoryId,
       title: input.title.trim(),
@@ -676,7 +682,18 @@ export interface StartTimerInput {
 }
 
 export async function startTimer(input: StartTimerInput): Promise<ActivityRecord> {
-  if (isOffline()) throw new OfflineError('Timers need a connection. You can log the activity manually.');
+  if (isOffline()) return startTimerOffline(input);
+  return startTimerAt(input, new Date().toISOString());
+}
+
+/**
+ * Start a timer with an explicit start time. Used to backdate timers started
+ * while offline so elapsed time stays honest when the queue flushes.
+ */
+export async function startTimerAt(
+  input: StartTimerInput,
+  startedAt: string,
+): Promise<ActivityRecord> {
   const uid = await requireUserId();
   const { data: template } = await db()
     .from('activity_templates')
@@ -707,9 +724,10 @@ export async function startTimer(input: StartTimerInput): Promise<ActivityRecord
     }
   }
 
+  const startedAtMs = new Date(startedAt).getTime();
   const expectedEndTime =
     input.mode === 'FIXED_DURATION' && input.durationMinutes
-      ? new Date(now.getTime() + input.durationMinutes * 60_000).toISOString()
+      ? new Date(startedAtMs + input.durationMinutes * 60_000).toISOString()
       : null;
 
   const { data, error } = await db()
@@ -723,7 +741,7 @@ export async function startTimer(input: StartTimerInput): Promise<ActivityRecord
       source: 'TIMER',
       status: 'RUNNING',
       privacy: prefs?.default_privacy ?? 'PUBLIC',
-      start_time: now.toISOString(),
+      start_time: startedAt,
       expected_end_time: expectedEndTime,
       duration_seconds: 0,
     })
@@ -733,21 +751,45 @@ export async function startTimer(input: StartTimerInput): Promise<ActivityRecord
   return mapRecord(data as RecordRow, []);
 }
 
+async function startTimerOffline(input: StartTimerInput): Promise<ActivityRecord> {
+  const startedAt = new Date().toISOString();
+  if (!overlapEnabled()) {
+    const completed = completeActiveRecord(startedAt);
+    if (completed) await enqueueOp('stopRecord', { id: completed.id, endedAt: startedAt });
+  }
+  const record = buildRunningRecord(input, startedAt);
+  await enqueueOp('startTimer', { ...input, startedAt, clientId: record.id });
+  setActiveRecordCached(record);
+  upsertRecord(record);
+  return record;
+}
+
 export async function stopRecord(id: string): Promise<ActivityRecord> {
-  if (isOffline()) throw new OfflineError('Stopping a timer needs a connection.');
+  if (isOffline()) {
+    const endedAt = new Date().toISOString();
+    const completed = completeActiveRecord(endedAt);
+    if (!completed) throw new Error('Record not found');
+    await enqueueOp('stopRecord', { id: completed.id, endedAt });
+    return completed;
+  }
+  return stopRecordAt(id, new Date().toISOString());
+}
+
+/** Stop a running timer at an explicit time (used when flushing the offline queue). */
+export async function stopRecordAt(id: string, endedAt: string): Promise<ActivityRecord> {
   const { data: existing } = await db().from('activity_records').select('id, status, start_time').eq('id', id).maybeSingle();
   if (!existing) throw new Error('Record not found');
   if (existing.status !== 'RUNNING') {
     const { data } = await db().from('activity_records').select('*').eq('id', id).single();
     return mapRecord(data as RecordRow, []);
   }
-  const now = new Date();
+  const endedAtMs = new Date(endedAt).getTime();
   const { data, error } = await db()
     .from('activity_records')
     .update({
       status: 'COMPLETED',
-      end_time: now.toISOString(),
-      duration_seconds: Math.max(1, Math.round((now.getTime() - new Date(existing.start_time).getTime()) / 1000)),
+      end_time: endedAt,
+      duration_seconds: Math.max(1, Math.round((endedAtMs - new Date(existing.start_time).getTime()) / 1000)),
     })
     .eq('id', id)
     .select()
@@ -768,8 +810,8 @@ export interface ManualRecordInput {
 
 export async function createManualRecord(input: ManualRecordInput): Promise<ActivityRecord> {
   if (isOffline()) {
-    await enqueueOp('createManualRecord', input);
     const optimistic = buildRecord(input);
+    await enqueueOp('createManualRecord', { ...input, clientId: optimistic.id });
     upsertRecord(optimistic);
     return optimistic;
   }
@@ -887,8 +929,8 @@ export interface CreateScheduleInput {
 
 export async function createSchedule(input: CreateScheduleInput): Promise<Schedule> {
   if (isOffline()) {
-    await enqueueOp('createSchedule', input);
     const optimistic = buildSchedule(input);
+    await enqueueOp('createSchedule', { ...input, clientId: optimistic.id });
     upsertInList('schedules', optimistic);
     return optimistic;
   }

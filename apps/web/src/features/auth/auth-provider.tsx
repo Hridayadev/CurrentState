@@ -5,6 +5,8 @@ import { createClient } from '@/utils/supabase/client';
 import { createContext, useCallback, useContext, useEffect, type ReactNode } from 'react';
 import * as api from '@/lib/api';
 import type { User } from '@/types';
+import { prefetchCoreQueries } from '@/lib/offline/prefetch';
+import { isOnline } from '@/lib/offline/connectivity';
 
 interface AuthContextValue {
   user: User | null;
@@ -39,6 +41,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => subscription.unsubscribe();
   }, [queryClient]);
+
+  // Once the session resolves, warm the offline cache with the core queries
+  // (categories, tags, templates, today's records) so they're available offline.
+  useEffect(() => {
+    if (sessionQuery.data && !sessionQuery.isLoading && isOnline()) {
+      void prefetchCoreQueries(queryClient);
+    }
+  }, [sessionQuery.data, sessionQuery.isLoading, queryClient]);
 
   const refresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['session'] });

@@ -1,11 +1,19 @@
 import type { Classification, Privacy, User } from '@/types';
 import * as api from '@/lib/api';
+import type { TimerMode } from '@/types';
 
 type Executor = (payload: unknown) => Promise<unknown>;
 
 export const EXECUTORS: Record<string, Executor> = {
-  createCategory: (p) =>
-    api.createCategory(p as { name: string; icon: string; classification: Classification }),
+  createCategory: (p) => {
+    const { clientId, name, icon, classification } = p as {
+      clientId?: string;
+      name: string;
+      icon: string;
+      classification: Classification;
+    };
+    return api.createCategory({ id: clientId, name, icon, classification });
+  },
   updateCategory: (p) => {
     const { id, input } = p as {
       id: string;
@@ -14,10 +22,20 @@ export const EXECUTORS: Record<string, Executor> = {
     return api.updateCategory(id, input);
   },
   deleteCategory: (p) => api.deleteCategory(p as string),
-  createTag: (p) => api.createTag(p as string),
+  createTag: (p) => {
+    const { name, clientId } = p as { name: string; clientId?: string };
+    return api.createTag(name, clientId);
+  },
   deleteTag: (p) => api.deleteTag(p as string),
-  createTemplate: (p) =>
-    api.createTemplate(p as { categoryId: string; title: string; description?: string }),
+  createTemplate: (p) => {
+    const { clientId, categoryId, title, description } = p as {
+      clientId?: string;
+      categoryId: string;
+      title: string;
+      description?: string;
+    };
+    return api.createTemplate({ id: clientId, categoryId, title, description });
+  },
   deleteTemplate: (p) => api.deleteTemplate(p as string),
   createManualRecord: (p) => api.createManualRecord(p as api.ManualRecordInput),
   updateRecord: (p) => {
@@ -34,4 +52,17 @@ export const EXECUTORS: Record<string, Executor> = {
     api.updateProfile(p as Partial<Pick<User, 'displayName' | 'emojiAvatar' | 'timezone'>>),
   updatePreferences: (p) => api.updatePreferences(p as Partial<User['preferences']>),
   markAllNotificationsRead: () => api.markAllNotificationsRead(),
+  startTimer: (p) => {
+    const { templateId, mode, durationMinutes, startedAt } = p as {
+      templateId: string;
+      mode: TimerMode;
+      durationMinutes?: number;
+      startedAt: string;
+    };
+    return api.startTimerAt({ templateId, mode, durationMinutes }, startedAt);
+  },
+  stopRecord: (p) => {
+    const { id, endedAt } = p as { id: string; endedAt: string };
+    return api.stopRecordAt(id, endedAt);
+  },
 };

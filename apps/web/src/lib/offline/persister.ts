@@ -6,7 +6,7 @@ const STORE_NAME = 'queries';
 const STORE_KEY = 'persistedClient';
 
 const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // drop cache if the app wasn't opened for 7 days
-const BUDGET_BYTES = 30 * 1024 * 1024; // 30 MB offline cache budget
+const DEFAULT_BUDGET_BYTES = 30 * 1024 * 1024; // 30 MB offline cache budget
 
 /**
  * Lightweight reference queries that are always kept. They are small and power
@@ -49,7 +49,8 @@ const HEAVY_PREFIXES = new Set([
  * - Drops the oldest data queries first, so the budget is never exceeded.
  * - Restore fails after MAX_AGE_MS, deleting stale caches automatically.
  */
-export function createBudgetPersister(): Persister {
+export function createBudgetPersister(options?: { budgetBytes?: number }): Persister {
+  const BUDGET_BYTES = options?.budgetBytes ?? DEFAULT_BUDGET_BYTES;
   const store = createStore(DB_NAME, STORE_NAME);
 
   return {
@@ -57,7 +58,7 @@ export function createBudgetPersister(): Persister {
       let client = persistedClient;
       let json = JSON.stringify(client);
       if (json.length > BUDGET_BYTES) {
-        client = { ...client, clientState: { ...client.clientState, queries: prune(client) } };
+        client = { ...client, clientState: { ...client.clientState, queries: prune(client, BUDGET_BYTES) } };
         json = JSON.stringify(client);
       }
       await set(STORE_KEY, json, store);
@@ -86,6 +87,7 @@ export function createBudgetPersister(): Persister {
 
 function prune(
   client: PersistedClient,
+  BUDGET_BYTES: number,
 ): PersistedClient['clientState']['queries'] {
   const queries = client.clientState.queries;
   const isHeavy = (q: (typeof queries)[number]) => HEAVY_PREFIXES.has(String(q.queryKey?.[0]));
@@ -98,7 +100,7 @@ function prune(
   const kept: typeof queries = [...light];
 
   for (const query of heavy) {
-    if (JSON.stringify([...kept, query]).length > BUDGET_BYTES) break;
+    if (JSON.stringify([...kept, query]).length > BUDGET_BYTES) continue;
     kept.push(query);
   }
 
