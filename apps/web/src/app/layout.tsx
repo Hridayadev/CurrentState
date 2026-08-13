@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { QueryProvider } from '@/components/common/query-provider';
 import { AuthProvider } from '@/features/auth/auth-provider';
@@ -10,6 +10,14 @@ export const metadata: Metadata = {
   },
   description:
     'A partner-oriented productivity tracker that keeps personal activity history private while sharing the right state with a trusted room partner.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

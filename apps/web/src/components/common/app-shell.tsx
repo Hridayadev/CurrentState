@@ -188,9 +188,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-dvh overflow-hidden">
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line bg-ink-panel/60 px-3 py-5 xl:flex">
+      <aside className="hidden h-full w-60 shrink-0 flex-col border-r border-line bg-ink-panel/60 px-3 py-5 xl:flex">
         <Logo />
         <div className="mt-6 flex-1">
           <NavList />
@@ -264,7 +264,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <div className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-line bg-ink/90 px-4 backdrop-blur xl:hidden">
+        <div className="flex h-14 shrink-0 items-center gap-2 border-b border-line bg-ink/90 px-4 backdrop-blur xl:hidden">
           <Logo />
           <PartnerChip />
           <div className="ml-auto shrink-0">
@@ -272,7 +272,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <header className="sticky top-0 hidden h-16 items-center justify-between gap-3 border-b border-line bg-ink/70 px-8 backdrop-blur xl:flex">
+        <header className="hidden h-16 shrink-0 items-center justify-between gap-3 border-b border-line bg-ink/70 px-8 backdrop-blur xl:flex">
           <div className="flex items-center gap-3">
             <p className="text-sm text-slate-300">
               <span className="font-medium text-white">{greeting}</span>
@@ -288,7 +288,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
         </header>
-        <main className="flex-1 px-5 pb-24 pt-6 xl:px-8 xl:pb-6">
+        <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-24 pt-6 xl:px-8 xl:pb-6">
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </main>
       </div>
