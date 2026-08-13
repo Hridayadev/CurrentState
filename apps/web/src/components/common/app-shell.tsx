@@ -8,7 +8,7 @@ import {
   History,
   LayoutDashboard,
   LogOut,
-  Menu,
+  MoreHorizontal,
   Play,
   Settings,
   Tags,
@@ -38,6 +38,16 @@ const NAV = [
   { href: '/categories', label: 'Categories', icon: FolderOpen },
   { href: '/tags', label: 'Tags', icon: Tags },
 ];
+
+const PRIMARY_NAV = [
+  { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
+  { href: '/activities', label: 'Activities', icon: Play },
+  { href: '/schedule', label: 'Schedule', icon: CalendarDays },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/history', label: 'History', icon: History },
+];
+
+const MORE_PATHS = ['/room', '/categories', '/tags', '/settings'];
 
 function Logo() {
   return (
@@ -105,6 +115,44 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+function BottomNav({ onOpenMore }: { onOpenMore: () => void }) {
+  const pathname = usePathname();
+  return (
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-line bg-ink-panel/95 backdrop-blur xl:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      {PRIMARY_NAV.map((item) => {
+        const active = pathname === item.href;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors',
+              active ? 'text-cyan-300' : 'text-slate-400 hover:text-slate-200',
+            )}
+          >
+            <item.icon className="h-5 w-5" />
+            <span className="max-w-full truncate px-1">{item.label}</span>
+          </Link>
+        );
+      })}
+      <button
+        onClick={onOpenMore}
+        className={cn(
+          'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors',
+          MORE_PATHS.some((p) => pathname.startsWith(p)) ? 'text-cyan-300' : 'text-slate-400 hover:text-slate-200',
+        )}
+        aria-label="More menu"
+      >
+        <MoreHorizontal className="h-5 w-5" />
+        <span>More</span>
+      </button>
+    </nav>
+  );
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
@@ -142,7 +190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line bg-ink-panel/60 px-3 py-5 lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line bg-ink-panel/60 px-3 py-5 xl:flex">
         <Logo />
         <div className="mt-6 flex-1">
           <NavList />
@@ -177,22 +225,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile top bar */}
-      <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-ink/90 px-4 backdrop-blur lg:hidden">
+      <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-ink/90 px-4 backdrop-blur xl:hidden">
         <Logo />
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <button
-            onClick={() => setMobileNav(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-slate-300"
-            aria-label="Open menu"
-          >
-            <Menu className="h-4 w-4" />
-          </button>
-        </div>
+        <ThemeToggle />
       </div>
 
       {mobileNav ? (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-50 xl:hidden">
           <div className="absolute inset-0 bg-slate-950/70" onClick={() => setMobileNav(false)} />
           <aside className="absolute left-0 top-0 flex h-full w-64 flex-col border-r border-line bg-ink-panel px-3 py-5">
             <div className="flex items-center justify-between">
@@ -230,8 +269,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Main column */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-14 z-10 flex h-16 items-center justify-between gap-3 border-b border-line bg-ink/70 px-5 backdrop-blur lg:top-0 lg:px-8">
-          <div className="hidden items-center gap-3 lg:flex">
+        <header className="sticky top-14 z-10 flex h-16 items-center justify-between gap-3 border-b border-line bg-ink/70 px-5 backdrop-blur xl:top-0 xl:px-8">
+          <div className="hidden items-center gap-3 xl:flex">
             <p className="text-sm text-slate-300">
               <span className="font-medium text-white">{greeting}</span>
               <span className="text-slate-500"> · </span>
@@ -246,10 +285,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
         </header>
-        <main className="flex-1 px-5 py-6 lg:px-8">
+        <main className="flex-1 px-5 pb-24 pt-6 xl:px-8 xl:pb-6">
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </main>
       </div>
+      <BottomNav onOpenMore={() => setMobileNav(true)} />
       <NotificationToaster />
     </div>
   );
