@@ -2,31 +2,18 @@
 
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
-import { createStore, del, get, set } from 'idb-keyval';
+import type { Persister } from '@tanstack/query-persist-client-core';
 import { useEffect, useState, type ReactNode } from 'react';
 import { flushQueue } from '@/lib/offline/flush';
 import { setQueryClient } from '@/lib/offline/cache';
+import { createBudgetPersister } from '@/lib/offline/persister';
 
 const MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-function createIdbStorage() {
-  const store = createStore('currentstate-query-cache', 'queries');
-  return {
-    getItem: async (key: string) => (await get<string>(key, store)) ?? null,
-    setItem: async (key: string, value: string) => {
-      await set(key, value, store);
-    },
-    removeItem: async (key: string) => {
-      await del(key, store);
-    },
-  };
-}
-
-const memoryStorage = {
-  getItem: async () => null,
-  setItem: async () => {},
-  removeItem: async () => {},
+const noopPersister: Persister = {
+  persistClient: async () => {},
+  restoreClient: async () => undefined,
+  removeClient: async () => {},
 };
 
 export function QueryProvider({ children }: { children: ReactNode }) {
@@ -44,9 +31,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
   );
 
   const [persister] = useState(() =>
-    createAsyncStoragePersister({
-      storage: typeof window === 'undefined' ? memoryStorage : createIdbStorage(),
-    }),
+    typeof window === 'undefined' ? noopPersister : createBudgetPersister(),
   );
 
   useEffect(() => {
