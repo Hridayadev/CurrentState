@@ -5,6 +5,8 @@ const CACHE = `currentstate-${VERSION}`;
 const PRECACHE = [
   '/',
   '/manifest.webmanifest',
+  '/favicon.svg',
+  '/apple-touch-icon.png',
   '/icon-192.png',
   '/icon-512.png',
   '/icon-maskable-512.png',
