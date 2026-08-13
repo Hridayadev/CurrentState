@@ -93,7 +93,7 @@ export default function SettingsPage() {
       />
 
       <div className="grid gap-5 lg:grid-cols-5">
-        <div className="space-y-5 lg:col-span-3">
+        <div className="min-w-0 space-y-5 lg:col-span-3">
           <Section icon={<UserRound className="h-4 w-4" />} title="Profile" description="How your partner sees you — separate from your Google account.">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
               <div className="flex flex-col items-center gap-2">
@@ -216,7 +216,7 @@ export default function SettingsPage() {
           </Section>
         </div>
 
-        <div className="space-y-5 lg:col-span-2">
+        <div className="min-w-0 space-y-5 lg:col-span-2">
           <Section icon={<Shield className="h-4 w-4" />} title="Account" description="Your identity and connection.">
             <div className="space-y-3">
               <AccountRow icon={<Mail className="h-4 w-4" />} label="Email" value={user.email} />

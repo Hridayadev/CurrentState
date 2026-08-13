@@ -93,12 +93,12 @@ export default function RoomPage() {
         />
 
         <div className="grid gap-5 lg:grid-cols-3">
-          <div className="space-y-5 lg:col-span-2">
+          <div className="min-w-0 space-y-5 lg:col-span-2">
             <PartnerFullCard />
             <PartnerHistoryCard />
           </div>
 
-          <aside className="space-y-5">
+          <aside className="min-w-0 space-y-5">
             <LeaveRoomCard onLeave={() => leaveRoom.mutate()} leaving={leaveRoom.isPending} />
           </aside>
         </div>
@@ -115,7 +115,7 @@ export default function RoomPage() {
       />
 
       <div className="grid gap-5 lg:grid-cols-3">
-        <div className="space-y-5 lg:col-span-2">
+        <div className="min-w-0 space-y-5 lg:col-span-2">
           <MembersCard members={room.members} meId={user?.id ?? ''} />
 
           <WaitingPanel
@@ -126,7 +126,7 @@ export default function RoomPage() {
           />
         </div>
 
-        <aside className="space-y-5">
+        <aside className="min-w-0 space-y-5">
           <InviteCard room={room} onRefresh={() => refreshInvite.mutate()} refreshPending={refreshInvite.isPending} />
           <div className="rounded-2xl border border-line bg-ink-panel/80 p-5 shadow-card">
             <p className="text-xs font-medium uppercase tracking-wider text-slate-500">Room rules</p>

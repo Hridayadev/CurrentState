@@ -29,7 +29,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'rounded-2xl border border-line bg-ink-panel/80 p-4 shadow-card',
+        'min-w-0 rounded-2xl border border-line bg-ink-panel/80 p-4 shadow-card',
         className,
       )}
     >

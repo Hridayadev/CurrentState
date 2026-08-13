@@ -65,16 +65,16 @@ export function DayProgress({ breakdown, label = 'Today' }: { breakdown: DayBrea
           </div>
           <div className="mt-4 space-y-2.5">
             {segments.map((s) => (
-              <div key={s.key} className="flex items-center gap-3">
-                <span className={cn('h-2 w-2 rounded-sm', s.dot)} />
-                <span className="w-28 text-sm capitalize text-slate-400">{s.label}</span>
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-800/60">
+              <div key={s.key} className="flex min-w-0 items-center gap-3">
+                <span className={cn('h-2 w-2 shrink-0 rounded-sm', s.dot)} />
+                <span className="w-24 shrink-0 truncate text-sm capitalize text-slate-400">{s.label}</span>
+                <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-800/60">
                   <div
                     className="h-full rounded-full"
                     style={{ width: `${pct(s.seconds)}%`, backgroundColor: s.hex, opacity: 0.85 }}
                   />
                 </div>
-                <span className={cn('w-16 text-right text-sm font-medium tabular-nums', s.text)}>
+                <span className={cn('w-14 shrink-0 text-right text-sm font-medium tabular-nums', s.text)}>
                   {formatDuration(s.seconds, { compact: true })}
                 </span>
               </div>

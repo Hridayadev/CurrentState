@@ -65,7 +65,7 @@ function TimelineRow({ block, isFirst, isLast }: { block: TimelineBlock; isFirst
           )}
         </div>
         {isActivity && block.classification ? (
-          <span className={cn('text-xs font-medium', CLASSIFICATION_META[block.classification].text)}>
+          <span className={cn('shrink-0 text-xs font-medium', CLASSIFICATION_META[block.classification].text)}>
             {CLASSIFICATION_META[block.classification].label}
           </span>
         ) : null}

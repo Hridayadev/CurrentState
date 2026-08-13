@@ -64,7 +64,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-3">
-        <div className="space-y-5 lg:col-span-2">
+        <div className="min-w-0 space-y-5 lg:col-span-2">
           <CurrentActivity />
           {todayLoading || !today ? (
             <div className="rounded-2xl border border-line bg-ink-panel/80 p-5 shadow-card">
@@ -84,7 +84,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <PartnerCard />
           <WeekLegend weekTotals={weekTotals} />
         </div>
@@ -119,12 +119,12 @@ function WeekLegend({ weekTotals }: { weekTotals: Record<string, number> }) {
       </div>
       <div className="mt-4 space-y-2">
         {entries.map((e) => (
-          <div key={e.key} className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-2 text-slate-400">
-              <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: e.color }} />
-              {e.label}
+          <div key={e.key} className="flex min-w-0 items-center justify-between gap-3 text-sm">
+            <span className="flex min-w-0 items-center gap-2 text-slate-400">
+              <span className="h-2 w-2 shrink-0 rounded-sm" style={{ backgroundColor: e.color }} />
+              <span className="truncate">{e.label}</span>
             </span>
-            <span className="font-medium text-slate-200">{formatDuration(weekTotals[e.key] ?? 0, { compact: true })}</span>
+            <span className="shrink-0 font-medium text-slate-200">{formatDuration(weekTotals[e.key] ?? 0, { compact: true })}</span>
           </div>
         ))}
       </div>

@@ -56,9 +56,9 @@ export function CurrentActivity() {
               {active.expectedEndTime ? ` · ends ${formatClock(active.expectedEndTime)}` : ' · stopwatch'}
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="text-right">
-              <ElapsedTimer startTime={active.startTime!} className="text-3xl font-semibold text-cyan-300" />
+              <ElapsedTimer startTime={active.startTime!} className="text-2xl font-semibold text-cyan-300 sm:text-3xl" />
               {active.expectedEndTime ? (
                 <p className="mt-0.5 text-xs text-slate-500">
                   {active.expectedEndTime ? (
