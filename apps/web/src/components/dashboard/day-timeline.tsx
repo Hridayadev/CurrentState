@@ -49,7 +49,7 @@ function TimelineRow({ block, isFirst, isLast }: { block: TimelineBlock; isFirst
         )}
       >
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="w-14 shrink-0 font-mono text-xs text-slate-400">
+          <span className="w-[5.5rem] shrink-0 whitespace-nowrap font-mono text-xs text-slate-400">
             {block.start}–{block.end}
           </span>
           {isActivity ? (
