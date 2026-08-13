@@ -11,6 +11,7 @@ import { SignInButton } from '@/features/auth/sign-in-button';
 import { ThemeToggle } from '@/components/common/theme-toggle';
 import { BrandLogo } from '@/components/common/brand-logo';
 import { CLASSIFICATION_META } from '@/lib/classification';
+import Link from 'next/link';
 
 export default function HomePage() {
   return (
@@ -179,7 +180,11 @@ export default function HomePage() {
         </section>
 
         <footer className="border-t border-line py-8 text-center text-xs text-slate-500">
-          CurrentState — focus together, grow together.
+          <p>CurrentState — focus together, grow together.</p>
+          <div className="mt-3 flex items-center justify-center gap-4">
+            <Link href="/privacy" className="hover:text-slate-300">Privacy</Link>
+            <Link href="/terms" className="hover:text-slate-300">Terms</Link>
+          </div>
         </footer>
       </div>
     </main>
