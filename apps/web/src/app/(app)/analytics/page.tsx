@@ -151,7 +151,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-5">
-        <Card className="min-w-0 p-0.5 lg:col-span-3">
+        <Card className="min-w-0 p-5 lg:col-span-3">
           <CardTitle>Daily classification</CardTitle>
           <p className="mt-1 text-xs text-slate-500">Stacked hours per day · average {formatDuration(stats.avg)} productive/day</p>
           <div className="mt-3">
@@ -159,13 +159,13 @@ export default function AnalyticsPage() {
           </div>
         </Card>
 
-        <Card className="min-w-0 p-0.5 lg:col-span-2">
+        <Card className="min-w-0 p-5 lg:col-span-2">
           <CardTitle>Category mix</CardTitle>
           <p className="mt-1 text-xs text-slate-500">Where {isPartner ? "your partner's" : 'your'} tracked time went</p>
           <CategoryPie data={categories ?? []} />
         </Card>
 
-        <Card className="min-w-0 p-0.5 lg:col-span-3">
+        <Card className="min-w-0 p-5 lg:col-span-3">
           <CardTitle>Productive trend</CardTitle>
           <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
             <TrendingUp className="h-3.5 w-3.5" /> Dashed line = total tracked, filled = productive
@@ -175,7 +175,7 @@ export default function AnalyticsPage() {
           </div>
         </Card>
 
-        <Card className="min-w-0 p-0.5 lg:col-span-2">
+        <Card className="min-w-0 p-5 lg:col-span-2">
           <CardTitle>Activity breakdown</CardTitle>
           <p className="mt-1 text-xs text-slate-500">{isPartner ? 'Shared with you' : 'Ranked by time spent'}</p>
           <div className="mt-4">
