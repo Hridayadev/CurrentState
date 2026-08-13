@@ -185,6 +185,17 @@ export default function HomePage() {
             <Link href="/privacy" className="hover:text-slate-300">Privacy</Link>
             <Link href="/terms" className="hover:text-slate-300">Terms</Link>
           </div>
+          <p className="mt-6">
+            Made with <span className="text-rose-400">♥</span> by{' '}
+            <a
+              href="https://hridayadev.com.np"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-slate-400 transition-colors hover:text-cyan-300"
+            >
+              Hridaya
+            </a>
+          </p>
         </footer>
       </div>
     </main>
