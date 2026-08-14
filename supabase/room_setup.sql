@@ -58,6 +58,23 @@ CREATE TRIGGER room_capacity_trigger
     BEFORE INSERT OR UPDATE OF status ON public.room_memberships
     FOR EACH ROW EXECUTE FUNCTION public.enforce_room_capacity();
 
+-- 4b) Membership helper — SECURITY DEFINER so policies can reference
+-- room_memberships WITHOUT re-entering its own RLS (prevents infinite recursion).
+CREATE OR REPLACE FUNCTION public.is_room_member(p_room_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM public.room_memberships
+        WHERE room_id = p_room_id AND user_id = auth.uid()
+    );
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_room_member(uuid) TO authenticated;
+
 -- 5) room_invites (optional, kept for parity with schema.sql) ------------------
 CREATE TABLE IF NOT EXISTS public.room_invites (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -83,21 +100,22 @@ DROP POLICY IF EXISTS "rooms insert own"     ON public.rooms;
 DROP POLICY IF EXISTS "rooms update member"  ON public.rooms;
 DROP POLICY IF EXISTS "rooms delete creator" ON public.rooms;
 CREATE POLICY "rooms select member" ON public.rooms FOR SELECT
-    USING (EXISTS (SELECT 1 FROM public.room_memberships rm WHERE rm.room_id = rooms.id AND rm.user_id = auth.uid()));
+    USING (public.is_room_member(rooms.id));
 CREATE POLICY "rooms select invite" ON public.rooms FOR SELECT USING (true);
 CREATE POLICY "rooms insert own"    ON public.rooms FOR INSERT WITH CHECK (created_by = auth.uid());
 CREATE POLICY "rooms update member" ON public.rooms FOR UPDATE
-    USING (EXISTS (SELECT 1 FROM public.room_memberships rm WHERE rm.room_id = rooms.id AND rm.user_id = auth.uid()));
+    USING (public.is_room_member(rooms.id));
 CREATE POLICY "rooms delete creator" ON public.rooms FOR DELETE USING (created_by = auth.uid());
 
 DROP POLICY IF EXISTS "members select member" ON public.room_memberships;
 DROP POLICY IF EXISTS "members insert own"    ON public.room_memberships;
 DROP POLICY IF EXISTS "members join update"   ON public.room_memberships;
 CREATE POLICY "members select member" ON public.room_memberships FOR SELECT
-    USING (room_id IN (SELECT room_id FROM public.room_memberships WHERE user_id = auth.uid()));
+    USING (user_id = auth.uid() OR public.is_room_member(room_id));
 CREATE POLICY "members insert own"    ON public.room_memberships FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "members join update"   ON public.room_memberships FOR UPDATE
-    USING (user_id = auth.uid() OR room_id IN (SELECT room_id FROM public.room_memberships WHERE user_id = auth.uid()));
+    USING (user_id = auth.uid() OR public.is_room_member(room_id))
+    WITH CHECK (user_id = auth.uid() OR public.is_room_member(room_id));
 
 DROP POLICY IF EXISTS "invites select member" ON public.room_invites;
 DROP POLICY IF EXISTS "invites insert member" ON public.room_invites;

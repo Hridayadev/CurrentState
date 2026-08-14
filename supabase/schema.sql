@@ -522,19 +522,37 @@ CREATE POLICY "schedules delete own"  ON public.schedules FOR DELETE USING (user
 
 -- Rooms/memberships: a user can see rooms they are part of; any signed-in
 -- user may look up a room by its (shareable) invite code in order to join.
+-- Membership is checked via is_room_member() (SECURITY DEFINER) so these
+-- policies never re-enter room_memberships' own RLS (infinite recursion).
+CREATE OR REPLACE FUNCTION public.is_room_member(p_room_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM public.room_memberships
+        WHERE room_id = p_room_id AND user_id = auth.uid()
+    );
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_room_member(uuid) TO authenticated;
+
 CREATE POLICY "rooms select member"  ON public.rooms FOR SELECT
-    USING (EXISTS (SELECT 1 FROM room_memberships rm WHERE rm.room_id = rooms.id AND rm.user_id = auth.uid()));
+    USING (public.is_room_member(rooms.id));
 CREATE POLICY "rooms select invite"  ON public.rooms FOR SELECT USING (true);
 CREATE POLICY "rooms insert own"     ON public.rooms FOR INSERT WITH CHECK (created_by = auth.uid());
 CREATE POLICY "rooms update member"  ON public.rooms FOR UPDATE
-    USING (EXISTS (SELECT 1 FROM room_memberships rm WHERE rm.room_id = rooms.id AND rm.user_id = auth.uid()));
+    USING (public.is_room_member(rooms.id));
 CREATE POLICY "rooms delete creator" ON public.rooms FOR DELETE USING (created_by = auth.uid());
 
 CREATE POLICY "members select member" ON public.room_memberships FOR SELECT
-    USING (room_id IN (SELECT room_id FROM room_memberships WHERE user_id = auth.uid()));
+    USING (user_id = auth.uid() OR public.is_room_member(room_id));
 CREATE POLICY "members insert own"    ON public.room_memberships FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "members join update"   ON public.room_memberships FOR UPDATE
-    USING (user_id = auth.uid() OR room_id IN (SELECT room_id FROM room_memberships WHERE user_id = auth.uid()));
+    USING (user_id = auth.uid() OR public.is_room_member(room_id))
+    WITH CHECK (user_id = auth.uid() OR public.is_room_member(room_id));
 
 CREATE POLICY "invites select member" ON public.room_invites FOR SELECT
     USING (room_id IN (SELECT room_id FROM room_memberships WHERE user_id = auth.uid()));
