@@ -47,6 +47,7 @@ export function NotificationToaster() {
     const unsubscribe = api.subscribe(() => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['partner'] });
+      queryClient.invalidateQueries({ queryKey: ['partner-history'] });
       queryClient.invalidateQueries({ queryKey: ['active-record'] });
       queryClient.invalidateQueries({ queryKey: ['room'] });
     });

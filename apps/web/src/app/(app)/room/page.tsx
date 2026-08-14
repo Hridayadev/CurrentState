@@ -33,7 +33,7 @@ import { EmptyState } from '@/components/ui/misc';
 import { Field, Input } from '@/components/ui/input';
 import { ElapsedTimer } from '@/components/activity/live-timer';
 import { ClassificationBadge } from '@/components/common/classification-badge';
-import { cn, formatClock, formatDuration, timeAgo } from '@/lib/utils';
+import { cn, formatClock, formatDuration, friendlyRoomJoinError, timeAgo } from '@/lib/utils';
 
 export default function RoomPage() {
   const queryClient = useQueryClient();
@@ -209,7 +209,7 @@ function NoRoom({
           </Button>
         </div>
         {join.isError ? (
-          <p className="mt-2 text-xs text-rose-400">{(join.error as Error).message}</p>
+          <p className="mt-2 text-xs text-rose-400">{friendlyRoomJoinError(join.error)}</p>
         ) : null}
       </div>
     </div>
@@ -475,7 +475,7 @@ function WaitingPanel({
         </div>
       </div>
       {join.isError ? (
-        <p className="mt-2 text-xs text-rose-400">{(join.error as Error).message}</p>
+        <p className="mt-2 text-xs text-rose-400">{friendlyRoomJoinError(join.error)}</p>
       ) : null}
     </div>
   );

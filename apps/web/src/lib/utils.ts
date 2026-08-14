@@ -94,6 +94,18 @@ export function timeAgo(date: Date | string): string {
   return `${Math.floor(s / 86400)}d ago`;
 }
 
+/** Turn a room-join error into something a human can act on. */
+export function friendlyRoomJoinError(error: unknown): string {
+  const message = (error as Error).message ?? '';
+  if (message.toLowerCase().includes('2 active members')) {
+    return 'This room already has its two members. Rooms hold exactly one partner — leave first if you want a fresh start.';
+  }
+  if (message.toLowerCase().includes('no connection')) {
+    return 'Joining a room needs a connection.';
+  }
+  return message;
+}
+
 export const EMOJI_AVATARS = ['🙂', '🚀', '🐱', '🦊', '🐼', '🧑‍💻', '🌱', '🔥', '⚡', '🎯', '💡', '🍀'];
 
 export const EMOJI_ICONS = [

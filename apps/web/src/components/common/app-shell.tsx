@@ -66,6 +66,7 @@ function PartnerChip() {
   });
 
   if (!partner) return null;
+  const hasActivity = Boolean(partner.activity);
   return (
     <Link
       href="/room"
@@ -74,7 +75,12 @@ function PartnerChip() {
     >
       <span className="relative flex shrink-0">
         <Avatar emoji={partner.emojiAvatar} size="xs" />
-        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-ink-panel bg-emerald-400" />
+        <span
+          className={cn(
+            'absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-ink-panel',
+            hasActivity ? 'bg-emerald-400' : 'bg-slate-500',
+          )}
+        />
       </span>
       <span className="min-w-0 flex-1 truncate text-xs text-slate-300">
         <span className="font-medium text-slate-200">{partner.displayName}</span>

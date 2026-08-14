@@ -1125,6 +1125,19 @@ export async function getRoom(): Promise<Room | null> {
   return buildRoom(data as RoomRow);
 }
 
+/** Look up a room by its shareable invite code (used by the /join page preview). */
+export async function previewRoom(code: string): Promise<Room | null> {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) return null;
+  const { data } = await db()
+    .from('rooms')
+    .select('*')
+    .eq('invite_code', normalized)
+    .maybeSingle();
+  if (!data) return null;
+  return buildRoom(data as RoomRow);
+}
+
 export async function createRoom(): Promise<Room> {
   if (isOffline()) throw new OfflineError('Creating a room needs a connection.');
   const uid = await requireUserId();
@@ -1159,7 +1172,12 @@ export async function joinRoom(code: string): Promise<Room> {
   const current = existing.find((m) => m.room_id === room.id);
   if (current?.status === 'ACTIVE') return buildRoom(room as RoomRow);
   if (current?.status === 'LEFT') {
-    await db().from('room_memberships').update({ status: 'ACTIVE', left_at: null }).eq('room_id', room.id).eq('user_id', uid);
+    const { error: reactivateError } = await db()
+      .from('room_memberships')
+      .update({ status: 'ACTIVE', left_at: null })
+      .eq('room_id', room.id)
+      .eq('user_id', uid);
+    if (reactivateError) throw new Error(reactivateError.message);
     return buildRoom(room as RoomRow);
   }
 
